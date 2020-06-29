@@ -1,5 +1,8 @@
 pipeline_stages:
       - match:
+          selector: '{filename=~".*nginx/access.log"} |~ "/api/datasources/proxy/8/loki"'
+          action: drop
+      - match:
           selector: '{filename=~".*nginx/access.log"}'
           stages:
             - regex:
