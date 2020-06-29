@@ -1,0 +1,11 @@
+pipeline_stages:
+      - match:
+          selector: '{filename=~".*php/error.log"}'
+          stages:
+            - regex:
+                expression: "\\[(?P<time>\\d{2}-[A-Z][a-z]{2,7}-\\d{4} \\d{2}:\\d{2}:\\d{2})\\] (?P<level>\\w{3,8})"
+            - timestamp:
+                source: time
+                format: "02-Jan-2006 15:04:05"
+            - labels:
+                level:

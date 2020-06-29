@@ -1,0 +1,44 @@
+pipeline_stages:
+      - match:
+          selector: '{filename=~".*nginx/access.log"}'
+          stages:
+            - regex:
+                expression: '- \[(?P<time>\d{2}/[A-Z][a-z]{2,7}/\d{4}:\d{2}:\d{2}:\d{2} [+-]\d{4})\] ".*HTTP/(?:1\.1|2+.0)" (?P<level>\d{3})'
+            - timestamp:
+                source: time
+                format: "02/Jan/2006:15:04:05 -0700"
+            - replace:
+                expression: '(1\d\d)'
+                source: "level"
+                replace: "INFO"
+            - replace:
+                expression: '(2\d\d)'
+                source: "level"
+                replace: "INFO"
+            - replace:
+                expression: '(3\d\d)'
+                source: "level"
+                replace: "NOTICE"
+            - replace:
+                expression: '(4\d\d)'
+                source: "level"
+                replace: "WARN"
+            - replace:
+                expression: '(5\d\d)'
+                source: "level"
+                replace: "WARN"
+            - labels:
+                level:
+      - match:
+          selector: '{filename=~".*nginx/error.log"}'
+          stages:
+            - regex:
+                expression: '(?P<time>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>\w{3,8})\]'
+            - timestamp:
+                source: time
+                format: "2006/01/02 15:04:05"
+            - template:
+                source: level
+                template: "{{ ToUpper .Value }}"
+            - labels:
+                level:

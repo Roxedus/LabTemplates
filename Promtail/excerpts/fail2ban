@@ -1,0 +1,26 @@
+pipeline_stages:
+      - match:
+          selector: '{filename=~".*fail2ban/fail2ban.log"}'
+          stages:
+            - regex:
+                expression:
+                  "(?P<time>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2},\\d{0,3})?\\D?
+                  (?P<message>fail2ban.*(?P<pid>\\[\\d*\\]: )(?P<level>[A-Z]{4,7}) .*
+                  (?:(?:\\[|Jail ')(?P<jail>\\D*)(?:\\]|'))?.*)"
+            - template:
+                source: message
+                template: '{{ Replace .Value .pid "" -1 }}'
+            - regex:
+                expression: '(?P<message>.*)(?: - \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+                source: message
+            - regex:
+                expression: '(?P<message>.*)(?:\.\d{1,3}\.\d{1,3}$)'
+                source: message
+            - template:
+                source: time
+                template: '{{ Replace .Value "," "." -1 }}'
+            - timestamp:
+                source: time
+                format: "2006-01-02 15:04:05.000"
+            - output:
+                source: message
